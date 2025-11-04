@@ -1,0 +1,16 @@
+{
+  "name": "Oxford 3000 Word Learner",
+  "short_name": "O3000 Learner",
+  "description": "Master the most important English words with AI-powered examples.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#2563EB",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

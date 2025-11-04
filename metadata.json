@@ -1,0 +1,5 @@
+{
+  "name": "Oxford 3000 Word Learner",
+  "description": "An interactive web application to learn the Oxford 3000 English words, featuring Arabic translations, text-to-speech for pronunciation, and AI-generated example sentences for context.",
+  "requestFramePermissions": []
+}
