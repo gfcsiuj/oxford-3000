@@ -15,6 +15,16 @@ function App() {
   const [isSentencesModalOpen, setIsSentencesModalOpen] = React.useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false);
   const [availableVoices, setAvailableVoices] = React.useState<SpeechSynthesisVoice[]>([]);
+  const [showFavoritesOnly, setShowFavoritesOnly] = React.useState(false);
+
+  const [favorites, setFavorites] = React.useState<string[]>(() => {
+    try {
+      const storedFavorites = localStorage.getItem('favoriteWords');
+      return storedFavorites ? JSON.parse(storedFavorites) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const [settings, setSettings] = React.useState<Settings>(() => {
     const storedSettings = localStorage.getItem('settings');
@@ -65,6 +75,11 @@ function App() {
     }
   }, [settings.voiceURI]);
 
+  React.useEffect(() => {
+    // Persist favorites to localStorage
+    localStorage.setItem('favoriteWords', JSON.stringify(favorites));
+  }, [favorites]);
+
 
   const handleSettingsChange = (newSettings: Partial<Settings>) => {
     setSettings(prev => ({...prev, ...newSettings}));
@@ -76,6 +91,20 @@ function App() {
 
   const handleSelectLetter = (letter: string | null) => {
     setSelectedLetter(letter);
+    setShowFavoritesOnly(false); // Exit favorites mode when a letter is selected
+  };
+
+  const handleShowFavorites = () => {
+    setSelectedLetter(null); // Deselect any letter when showing favorites
+    setShowFavoritesOnly(true);
+  };
+
+  const handleToggleFavorite = (wordEn: string) => {
+    setFavorites(prev => 
+      prev.includes(wordEn) 
+        ? prev.filter(w => w !== wordEn) 
+        : [...prev, wordEn]
+    );
   };
 
   const handleViewExamples = (word: Word) => {
@@ -84,12 +113,16 @@ function App() {
   };
 
   const filteredWords = React.useMemo(() => {
-    return oxford3000.filter(word => {
+    const sourceWords = showFavoritesOnly
+      ? oxford3000.filter(word => favorites.includes(word.en))
+      : oxford3000;
+
+    return sourceWords.filter(word => {
       const matchesLetter = selectedLetter ? word.en.toUpperCase().startsWith(selectedLetter) : true;
       const matchesSearch = word.en.toLowerCase().includes(searchTerm);
       return matchesLetter && matchesSearch;
     });
-  }, [searchTerm, selectedLetter]);
+  }, [searchTerm, selectedLetter, favorites, showFavoritesOnly]);
   
   const selectedVoice = React.useMemo(() => {
     return availableVoices.find(v => v.voiceURI === settings.voiceURI) || null;
@@ -104,7 +137,12 @@ function App() {
            <SearchBar onSearch={handleSearch} />
         </div>
        
-        <AlphabetFilter selectedLetter={selectedLetter} onSelectLetter={handleSelectLetter} />
+        <AlphabetFilter 
+            selectedLetter={selectedLetter} 
+            onSelectLetter={handleSelectLetter}
+            showFavoritesOnly={showFavoritesOnly}
+            onShowFavorites={handleShowFavorites}
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {filteredWords.map(word => (
@@ -114,14 +152,25 @@ function App() {
               onViewExamples={handleViewExamples}
               speechRate={settings.speechRate}
               voice={selectedVoice}
+              isFavorite={favorites.includes(word.en)}
+              onToggleFavorite={handleToggleFavorite}
             />
           ))}
         </div>
         
         {filteredWords.length === 0 && (
-          <div className="text-center py-16">
-            <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-300">No words found</h2>
-            <p className="mt-2 text-slate-500 dark:text-slate-400">Try adjusting your search or filter.</p>
+           <div className="text-center py-16">
+            {showFavoritesOnly ? (
+              <>
+                <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-300">No favorite words yet</h2>
+                <p className="mt-2 text-slate-500 dark:text-slate-400">Click the star icon on a word to add it here.</p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-300">No words found</h2>
+                <p className="mt-2 text-slate-500 dark:text-slate-400">Try adjusting your search or filter.</p>
+              </>
+            )}
           </div>
         )}
       </main>

@@ -61,6 +61,10 @@ const SentencesModal: React.FC<SentencesModalProps> = ({ isOpen, onClose, word, 
       const utterance = new SpeechSynthesisUtterance(text);
       if (voice) {
         utterance.voice = voice;
+        utterance.lang = voice.lang;
+      } else {
+        // Fallback to a standard English voice if no specific voice is selected
+        utterance.lang = 'en-US';
       }
       utterance.rate = speechRate;
       window.speechSynthesis.speak(utterance);
