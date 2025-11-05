@@ -1,30 +1,18 @@
 import React from 'react';
-import { oxford3000 } from './data/words';
-import type { Word, Settings, Theme } from './types';
-import Header from './components/Header';
-import SearchBar from './components/SearchBar';
-import AlphabetFilter from './components/AlphabetFilter';
-import WordCard from './components/WordCard';
-import SentencesModal from './components/SentencesModal';
+import type { Settings, View } from './types';
+import HomeScreen from './components/HomeScreen';
+import DictionaryScreen from './components/DictionaryScreen';
+import QuizScreen from './components/QuizScreen';
+import ChatScreen from './components/ChatScreen';
+import AboutScreen from './components/AboutScreen';
 import SettingsModal from './components/SettingsModal';
+import Header from './components/Header';
+import DailyWordsScreen from './components/DailyWordsScreen';
 
 function App() {
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [selectedLetter, setSelectedLetter] = React.useState<string | null>(null);
-  const [selectedWord, setSelectedWord] = React.useState<Word | null>(null);
-  const [isSentencesModalOpen, setIsSentencesModalOpen] = React.useState(false);
+  const [view, setView] = React.useState<View>('home');
   const [isSettingsModalOpen, setIsSettingsModalOpen] = React.useState(false);
   const [availableVoices, setAvailableVoices] = React.useState<SpeechSynthesisVoice[]>([]);
-  const [showFavoritesOnly, setShowFavoritesOnly] = React.useState(false);
-
-  const [favorites, setFavorites] = React.useState<string[]>(() => {
-    try {
-      const storedFavorites = localStorage.getItem('favoriteWords');
-      return storedFavorites ? JSON.parse(storedFavorites) : [];
-    } catch {
-      return [];
-    }
-  });
 
   const [settings, setSettings] = React.useState<Settings>(() => {
     const storedSettings = localStorage.getItem('settings');
@@ -41,10 +29,7 @@ function App() {
   });
 
   React.useEffect(() => {
-    // Persist settings to localStorage
     localStorage.setItem('settings', JSON.stringify(settings));
-
-    // Handle theme change
     const root = window.document.documentElement;
     const systemIsDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
@@ -75,114 +60,60 @@ function App() {
     }
   }, [settings.voiceURI]);
 
-  React.useEffect(() => {
-    // Persist favorites to localStorage
-    localStorage.setItem('favoriteWords', JSON.stringify(favorites));
-  }, [favorites]);
-
-
   const handleSettingsChange = (newSettings: Partial<Settings>) => {
     setSettings(prev => ({...prev, ...newSettings}));
   };
-
-  const handleSearch = (term: string) => {
-    setSearchTerm(term.toLowerCase());
-  };
-
-  const handleSelectLetter = (letter: string | null) => {
-    setSelectedLetter(letter);
-    setShowFavoritesOnly(false); // Exit favorites mode when a letter is selected
-  };
-
-  const handleShowFavorites = () => {
-    setSelectedLetter(null); // Deselect any letter when showing favorites
-    setShowFavoritesOnly(true);
-  };
-
-  const handleToggleFavorite = (wordEn: string) => {
-    setFavorites(prev => 
-      prev.includes(wordEn) 
-        ? prev.filter(w => w !== wordEn) 
-        : [...prev, wordEn]
-    );
-  };
-
-  const handleViewExamples = (word: Word) => {
-    setSelectedWord(word);
-    setIsSentencesModalOpen(true);
-  };
-
-  const filteredWords = React.useMemo(() => {
-    const sourceWords = showFavoritesOnly
-      ? oxford3000.filter(word => favorites.includes(word.en))
-      : oxford3000;
-
-    return sourceWords.filter(word => {
-      const matchesLetter = selectedLetter ? word.en.toUpperCase().startsWith(selectedLetter) : true;
-      const matchesSearch = word.en.toLowerCase().includes(searchTerm);
-      return matchesLetter && matchesSearch;
-    });
-  }, [searchTerm, selectedLetter, favorites, showFavoritesOnly]);
   
   const selectedVoice = React.useMemo(() => {
     return availableVoices.find(v => v.voiceURI === settings.voiceURI) || null;
   }, [settings.voiceURI, availableVoices]);
 
+  const renderView = () => {
+    switch (view) {
+      case 'dictionary':
+        return <DictionaryScreen settings={settings} voice={selectedVoice} />;
+      case 'quiz':
+        return <QuizScreen />;
+      case 'chat':
+        return <ChatScreen />;
+      case 'about':
+        return <AboutScreen />;
+      case 'daily-words':
+        return <DailyWordsScreen settings={settings} voice={selectedVoice} />;
+      case 'home':
+      default:
+        return <HomeScreen setView={setView} />;
+    }
+  };
+  
+  const getTitle = () => {
+      switch (view) {
+          case 'dictionary': return 'القاموس';
+          case 'quiz': return 'الاختبار';
+          case 'chat': return 'الدردشة مع مدرس اللغة الإنجليزية';
+          case 'about': return 'عن التطبيق';
+          case 'daily-words': return 'كلمات اليوم';
+          case 'home':
+          default:
+            return 'متعلم كلمات أكسفورد 3000'
+      }
+  }
+
   return (
     <div className="bg-slate-50 dark:bg-slate-900 min-h-screen transition-colors">
-      <Header onOpenSettings={() => setIsSettingsModalOpen(true)} />
-
-      <main className="container mx-auto px-4 py-8 md:px-8">
-        <div className="sticky top-0 z-10 py-4 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm">
-           <SearchBar onSearch={handleSearch} />
-        </div>
-       
-        <AlphabetFilter 
-            selectedLetter={selectedLetter} 
-            onSelectLetter={handleSelectLetter}
-            showFavoritesOnly={showFavoritesOnly}
-            onShowFavorites={handleShowFavorites}
-        />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredWords.map(word => (
-            <WordCard 
-              key={word.en} 
-              word={word} 
-              onViewExamples={handleViewExamples}
-              speechRate={settings.speechRate}
-              voice={selectedVoice}
-              isFavorite={favorites.includes(word.en)}
-              onToggleFavorite={handleToggleFavorite}
-            />
-          ))}
-        </div>
-        
-        {filteredWords.length === 0 && (
-           <div className="text-center py-16">
-            {showFavoritesOnly ? (
-              <>
-                <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-300">No favorite words yet</h2>
-                <p className="mt-2 text-slate-500 dark:text-slate-400">Click the star icon on a word to add it here.</p>
-              </>
-            ) : (
-              <>
-                <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-300">No words found</h2>
-                <p className="mt-2 text-slate-500 dark:text-slate-400">Try adjusting your search or filter.</p>
-              </>
-            )}
-          </div>
-        )}
-      </main>
-
-      <SentencesModal 
-        isOpen={isSentencesModalOpen}
-        onClose={() => setIsSentencesModalOpen(false)}
-        word={selectedWord}
-        speechRate={settings.speechRate}
-        voice={selectedVoice}
+      <Header 
+        title={getTitle()}
+        showHomeButton={view !== 'home'}
+        onGoHome={() => setView('home')}
+        onOpenSettings={() => setIsSettingsModalOpen(true)} 
       />
-
+      <main className="px-4 py-8 md:px-8">
+        <div className="container mx-auto">
+          <div className={view !== 'home' ? 'animate-fade-in' : ''}>
+            {renderView()}
+          </div>
+        </div>
+      </main>
       <SettingsModal
         isOpen={isSettingsModalOpen}
         onClose={() => setIsSettingsModalOpen(false)}

@@ -12,7 +12,7 @@ const AlphabetFilter: React.FC<AlphabetFilterProps> = ({ selectedLetter, onSelec
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
   return (
-    <div className="flex flex-wrap justify-center gap-2 my-6">
+    <div className="flex flex-wrap justify-center gap-2">
       <button
         onClick={() => onSelectLetter(null)}
         aria-pressed={!showFavoritesOnly && selectedLetter === null}
@@ -22,7 +22,7 @@ const AlphabetFilter: React.FC<AlphabetFilterProps> = ({ selectedLetter, onSelec
             : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600'
         }`}
       >
-        All
+        الكل
       </button>
        <button
         onClick={onShowFavorites}
@@ -34,7 +34,7 @@ const AlphabetFilter: React.FC<AlphabetFilterProps> = ({ selectedLetter, onSelec
         }`}
       >
         <StarIcon filled={showFavoritesOnly} className="h-5 w-5" />
-        Favorites
+        المفضلة
       </button>
       {alphabet.map(letter => (
         <button

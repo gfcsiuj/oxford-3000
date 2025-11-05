@@ -26,12 +26,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
       >
         <div className="flex justify-between items-center">
           <h2 id="settings-modal-title" className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Settings
+            الإعدادات
           </h2>
           <button
             onClick={onClose}
             className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-800 focus:ring-blue-500"
-            aria-label="Close settings"
+            aria-label="إغلاق الإعدادات"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
@@ -39,7 +39,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
 
         {/* Theme Settings */}
         <div>
-          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">Theme</h3>
+          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">المظهر</h3>
           <div className="mt-2 flex space-x-2">
             {(['light', 'dark', 'system'] as Theme[]).map((theme) => (
               <button
@@ -51,19 +51,19 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                     : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600'
                 }`}
               >
-                {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                {theme === 'light' ? 'فاتح' : theme === 'dark' ? 'داكن' : 'النظام'}
               </button>
             ))}
           </div>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            System setting will match your device's appearance.
+            سيطابق إعداد النظام مظهر جهازك.
           </p>
         </div>
 
         {/* Speech Speed Settings */}
         <div>
           <label htmlFor="speech-rate" className="text-lg font-semibold text-slate-700 dark:text-slate-300">
-            Speech Speed
+            سرعة النطق
           </label>
           <div className="flex items-center mt-2 space-x-4">
             <input
@@ -83,13 +83,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
         {/* Pronunciation Voice Settings */}
         <div>
            <label htmlFor="voice-select" className="text-lg font-semibold text-slate-700 dark:text-slate-300">
-            Pronunciation Voice
+            صوت النطق
           </label>
           <select 
             id="voice-select"
             value={settings.voiceURI || ''}
             onChange={(e) => onSettingsChange({ voiceURI: e.target.value })}
-            className="mt-2 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+            className="mt-2 block w-full pr-3 pl-10 py-2 text-base border-gray-300 dark:border-slate-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
             disabled={availableVoices.length === 0}
           >
             {availableVoices.length > 0 ? (
@@ -99,7 +99,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                 </option>
               ))
             ) : (
-              <option>No English voices found</option>
+              <option>لم يتم العثور على أصوات إنجليزية</option>
             )}
           </select>
         </div>

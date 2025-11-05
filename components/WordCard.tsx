@@ -35,7 +35,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onViewExamples, speechRate, v
     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6 flex flex-col justify-between">
       <div>
         <div className="flex justify-between items-start">
-          <div className="pr-2">
+          <div className="pr-2 text-right">
             <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{word.en}</h3>
             <p className="text-sm italic text-slate-500 dark:text-slate-400 capitalize">{word.pos}</p>
           </div>
@@ -50,7 +50,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onViewExamples, speechRate, v
                   ? 'text-yellow-400 hover:text-yellow-500' 
                   : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
               } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-800 focus:ring-yellow-500`}
-              aria-label={isFavorite ? `Remove ${word.en} from favorites` : `Add ${word.en} to favorites`}
+              aria-label={isFavorite ? `إزالة ${word.en} من المفضلة` : `إضافة ${word.en} إلى المفضلة`}
               aria-pressed={isFavorite}
             >
               <StarIcon filled={isFavorite} />
@@ -61,7 +61,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onViewExamples, speechRate, v
                 handleSpeak();
               }}
               className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-800 focus:ring-blue-500 transition-colors"
-              aria-label={`Listen to the pronunciation of ${word.en}`}
+              aria-label={`استمع إلى نطق ${word.en}`}
             >
               <SpeakerIcon />
             </button>
@@ -74,7 +74,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onViewExamples, speechRate, v
           onClick={() => onViewExamples(word)}
           className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
         >
-          View Examples
+          عرض الأمثلة
         </button>
       </div>
     </div>
