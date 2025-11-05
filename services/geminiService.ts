@@ -1,77 +1,53 @@
-import { GoogleGenAI, GenerateContentResponse, Type } from '@google/genai';
-import type { SentenceExample, Word, QuizQuestion } from '../types';
+import type { SentenceExample } from '../types';
 
-let ai: GoogleGenAI | null = null;
+async function callProxy(action: string, payload: any) {
+    try {
+        const response = await fetch('/.netlify/functions/generate-sentences', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ action, payload }),
+        });
 
-function getAI() {
-  if (!ai) {
-    if (!process.env.API_KEY) {
-      // In a real app, you might want to show a friendly error to the user.
-      throw new Error("API_KEY environment variable not set.");
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({ error: 'An unknown server error occurred.' }));
+            throw new Error(errorBody.error || `Request failed with status ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error(`Error calling proxy for action "${action}":`, error);
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error("Failed to communicate with the server. Please check your connection.");
     }
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  }
-  return ai;
 }
 
 
 export const generateSentences = async (word: string): Promise<SentenceExample[]> => {
-  try {
-    const ai = getAI();
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [{
-        parts: [{ text: `Generate an array of 5 diverse and simple example sentences for the English word "${word}". Each sentence should be suitable for a language learner. For each sentence, also provide its Arabic translation.` }]
-      }],
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              sentence: { type: Type.STRING, description: "A simple English example sentence." },
-              translation: { type: Type.STRING, description: "The Arabic translation of the sentence." }
-            },
-            required: ["sentence", "translation"]
-          }
+    try {
+        const sentences = await callProxy('generateSentences', { word });
+        return sentences;
+    } catch (error) {
+        console.error(`Error fetching sentences for "${word}":`, error);
+        if (error instanceof Error) {
+            throw error;
         }
-      }
-    });
-    
-    const jsonStr = response.text.trim();
-    if (!jsonStr) {
-      throw new Error("Received an empty response from the AI.");
+        throw new Error("Failed to generate sentences. Please try again.");
     }
-
-    const sentences = JSON.parse(jsonStr);
-    return sentences;
-  } catch (error) {
-    console.error(`Error fetching sentences for "${word}":`, error);
-    if (error instanceof Error) {
-        throw new Error(error.message);
-    }
-    throw new Error("Failed to generate sentences. Please check your connection and try again.");
-  }
 };
 
-
-export const generateQuizQuestion = (word: Word, otherWords: Word[]): QuizQuestion => {
-    // This function can generate the question locally without an API call.
-    // It's faster, more reliable, and works offline.
-    const options = otherWords
-        .filter(w => w.en !== word.en)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3)
-        .map(w => w.ar)
-        .concat(word.ar)
-        .sort(() => 0.5 - Math.random());
-        
-    return {
-        question: `ما هو معنى '${word.en}'؟`,
-        type: 'multiple-choice-translation',
-        options: options,
-        answer: word.ar,
-        word: word
-    };
+export const generateFillBlankSentence = async (word: string): Promise<string> => {
+    try {
+        const result = await callProxy('generateFillBlankSentence', { word });
+        return result.sentence;
+    } catch (error) {
+        console.error(`Error generating fill-in-the-blank sentence for "${word}":`, error);
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error("Failed to generate sentence.");
+    }
 };

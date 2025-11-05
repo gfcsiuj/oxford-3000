@@ -25,12 +25,33 @@ export interface ChatMessage {
     isLoading?: boolean;
 }
 
-export type QuestionType = 'multiple-choice-translation';
+export type QuestionType =
+  | 'MC_EN_AR'
+  | 'MC_AR_EN'
+  | 'LISTEN_CHOOSE_EN'
+  | 'LISTEN_TYPE_EN'
+  | 'SPELLING_BEE'
+  | 'POS_ID'
+  | 'FILL_BLANK'
+  | 'MATCH_PAIRS';
 
 export interface QuizQuestion {
-    question: string;
     type: QuestionType;
-    options: string[];
-    answer: string;
     word: Word;
+    questionText: string;
+    options?: string[];
+    answer: string;
+    matchPairs?: { en: string; ar: string }[];
+}
+
+export interface QuizSettings {
+    questionCount: number;
+    letters: string[];
+    questionTypes: QuestionType[];
+}
+
+export interface UserAnswer {
+    question: QuizQuestion;
+    answer: string | { en: string; ar: string }[];
+    isCorrect: boolean;
 }

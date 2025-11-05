@@ -73,7 +73,7 @@ function App() {
       case 'dictionary':
         return <DictionaryScreen settings={settings} voice={selectedVoice} />;
       case 'quiz':
-        return <QuizScreen />;
+        return <QuizScreen settings={settings} voice={selectedVoice} />;
       case 'chat':
         return <ChatScreen />;
       case 'about':
@@ -89,7 +89,7 @@ function App() {
   const getTitle = () => {
       switch (view) {
           case 'dictionary': return 'القاموس';
-          case 'quiz': return 'الاختبار';
+          case 'quiz': return 'مركز الاختبارات';
           case 'chat': return 'الدردشة مع مدرس اللغة الإنجليزية';
           case 'about': return 'عن التطبيق';
           case 'daily-words': return 'كلمات اليوم';

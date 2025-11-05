@@ -8,6 +8,7 @@ const APP_SHELL_URLS = [
   '/App.tsx',
   '/types.ts',
   '/services/geminiService.ts',
+  '/services/quizGenerator.ts',
   // New Screens
   '/components/HomeScreen.tsx',
   '/components/DictionaryScreen.tsx',
