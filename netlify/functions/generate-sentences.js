@@ -1,10 +1,3 @@
-import { GoogleGenAI, Type } from "https://esm.sh/@google/genai@1.28.0";
-
-/**
- * @typedef {Object} SentenceExample
- * @property {string} sentence
- * @property {string} translation
- */
 
 export const handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -22,41 +15,63 @@ export const handler = async (event) => {
       console.error("API_KEY environment variable not set on server");
       return { statusCode: 500, body: JSON.stringify({ error: "Server configuration error: API key not found." }) };
     }
-    const ai = new GoogleGenAI({ apiKey });
 
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: `Generate an array of 10 diverse and simple example sentences for the English word "${word}". Each sentence should be suitable for a language learner. For each sentence, also provide its Arabic translation.`,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        sentence: {
-                            type: Type.STRING,
-                            description: "A simple English example sentence."
-                        },
-                        translation: {
-                            type: Type.STRING,
-                            description: "The Arabic translation of the sentence."
-                        }
-                    },
-                    required: ["sentence", "translation"],
-                    propertyOrdering: ["sentence", "translation"],
-                }
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    const requestBody = {
+      contents: [
+        {
+          parts: [
+            {
+              text: `Generate an array of 5 diverse and simple example sentences for the English word "${word}". Each sentence should be suitable for a language learner. For each sentence, also provide its Arabic translation.`
             }
+          ]
         }
+      ],
+      generationConfig: {
+        response_mime_type: "application/json",
+        response_schema: {
+          type: "ARRAY",
+          items: {
+            type: "OBJECT",
+            properties: {
+              sentence: {
+                type: "STRING",
+                description: "A simple English example sentence."
+              },
+              translation: {
+                type: "STRING",
+                description: "The Arabic translation of the sentence."
+              }
+            },
+            required: ["sentence", "translation"]
+          }
+        }
+      }
+    };
+
+    const apiResponse = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
     });
 
-    const jsonStr = response.text.trim();
+    if (!apiResponse.ok) {
+      const errorBody = await apiResponse.json().catch(() => ({ error: { message: "Failed to parse Gemini API error response." } }));
+      console.error("Gemini API Error:", errorBody);
+      throw new Error(errorBody.error?.message || `Gemini API request failed with status ${apiResponse.status}`);
+    }
+
+    const responseData = await apiResponse.json();
+    
+    const jsonStr = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
+
     if (!jsonStr) {
-      throw new Error("Received empty response from API");
+      console.error("Invalid response structure from Gemini API:", responseData);
+      throw new Error("Invalid response structure from Gemini API");
     }
     
-    /** @type {SentenceExample[]} */
-    const sentences = JSON.parse(jsonStr);
+    const sentences = JSON.parse(jsonStr.trim());
     
     return {
       statusCode: 200,
@@ -69,7 +84,7 @@ export const handler = async (event) => {
     const errorMessage = error instanceof Error ? error.message : "An unknown server error occurred.";
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: `Failed to generate sentences from AI. ${errorMessage}` }),
+      body: JSON.stringify({ error: `Failed to generate sentences. ${errorMessage}` }),
     };
   }
 };
